@@ -12,7 +12,7 @@ from typing import List, Optional
 
 # === Telegram Ayarları ===
 TELEGRAM_TOKEN = '7761091287:AAGEW8OcnfMFUt5_DmAIzBm2I63YgHAcia4'
-CHAT_ID = '2123083924'
+CHAT_ID = '-1002565394717'
 
 # === Binance API ===
 exchange = ccxt.binance({
