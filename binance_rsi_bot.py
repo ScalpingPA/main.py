@@ -136,15 +136,15 @@ async def check_symbol(symbol: str) -> bool:
         clean_symbol = symbol.replace('/USDT:USDT', '').replace('/USDT', '')
 
         message = (
-            f"💰: {clean_symbol}USDT.P\n"
-            f"🔔: High🔴🔴 RSI Alert +85\n"
-            f"RSI 5minute: {rsi_5m:.2f}\n"
-            f"RSI 15minute: {rsi_15m:.2f}\n"
-            f"RSI 1hour: {rsi_1h:.2f}\n"
-            f"RSI 4hour: {rsi_4h:.2f}\n"
-            f"Last Price: {last_price:.5f}\n"
-            f"ScalpingPA"
-        )
+    f"💰: {clean_symbol}USDT.P\n"
+    f"🔔: High🔴🔴 RSI Alert +85\n"
+    f"RSI 5m: {rsi_5m:.2f} | Close: {data_5m[-1][4]:.5f}\n"
+    f"RSI 15m: {rsi_15m:.2f} | Close: {data_15m[-1][4]:.5f}\n"
+    f"RSI 1h: {rsi_1h:.2f} | Close: {data_1h[-1][4]:.5f}\n"
+    f"RSI 4h: {rsi_4h:.2f} | Close: {data_4h[-1][4]:.5f}\n"
+    f"Last Price: {last_price:.5f}\n"
+    f"ScalpingPA"
+)
         await send_telegram_alert(message)
         return True
     except Exception as e:
