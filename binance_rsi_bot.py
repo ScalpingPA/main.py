@@ -34,7 +34,7 @@ logging.basicConfig(
 bot = Bot(token=TELEGRAM_TOKEN)
 
 # === Parametreler ===
-RSI_PERIOD = 14
+RSI_PERIOD = 12
 OHLCV_LIMIT = 20
 API_DELAY = 0.3
 MAX_CONCURRENT = 5
