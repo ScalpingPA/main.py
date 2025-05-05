@@ -1,4 +1,4 @@
-
+from ta.momentum import RSIIndicator  # TradingView uyumlu RSI için
 import ccxt
 import pandas as pd
 from telegram import Bot, error as telegram_error
