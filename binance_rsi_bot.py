@@ -111,14 +111,14 @@ async def check_symbol(symbol: str) -> bool:
         if not data_5m or len(data_5m) < RSI_PERIOD:
             return False
         rsi_5m = calculate_rsi([x[4] for x in data_5m])
-        if rsi_5m < 88:
+        if rsi_5m < 90:
             return False
 
         data_15m = await fetch_ohlcv(symbol, "15m")
         if not data_15m or len(data_15m) < RSI_PERIOD:
             return False
         rsi_15m = calculate_rsi([x[4] for x in data_15m])
-        if rsi_15m < 88:
+        if rsi_15m < 90:
             return False
 
         data_1h = await fetch_ohlcv(symbol, "1h")
