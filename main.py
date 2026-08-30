@@ -24,8 +24,9 @@ REQUEST_DELAY = 0.05  # İstekler arası bekleme (saniye)
 # === Sembol Filtreleme ===
 STABLE_COINS = ["USDC", "BUSD", "TUSD", "USDP", "DAI", "FDUSD", "USTC", "EURS", "PAX"]
 
+
 class Scanner:
-    def _init_(self):
+    def __init__(self):
         self.scan_count = 0
         self.last_scan_time = None
         self.request_counter = 0
@@ -90,7 +91,7 @@ class Scanner:
                 data = await response.json()
                 pairs = [
                     symbol['symbol'] for symbol in data['symbols']
-                    if symbol['quoteAsset'] == 'USDT' 
+                    if symbol['quoteAsset'] == 'USDT'
                     and symbol['contractType'] == 'PERPETUAL'
                     and symbol['status'] == 'TRADING'
                     and not any(coin in symbol['baseAsset'] for coin in STABLE_COINS)
@@ -103,7 +104,7 @@ class Scanner:
 
     async def get_klines(self, session, symbol, interval):
         try:
-await self.check_rate_limit()
+            await self.check_rate_limit()
             params = {'symbol': symbol, 'interval': interval, 'limit': KLINES_LIMIT}
             async with session.get(f"{API_URL}/fapi/v1/klines", params=params, timeout=5) as response:
                 data = await response.json()
@@ -135,14 +136,14 @@ await self.check_rate_limit()
             await self.log(f"📈 {symbol} RSI değerleri: 5m={rsi_values['5m']:.2f} 15m={rsi_values['15m']:.2f} 1h={rsi_values['1h']:.2f} 4h={rsi_values['4h']:.2f}")
             current_price = results[0][-1]
             alerted = False
-            if (rsi_values['5m'] >= 90 and 
-                rsi_values['15m'] >= 90 and 
+            if (rsi_values['5m'] >= 90 and
+                rsi_values['15m'] >= 90 and
                 (rsi_values['5m'] + rsi_values['15m'] + rsi_values['1h'] + rsi_values['4h']) / 4 >= 85):
                 await self.send_telegram_alert(session, symbol, rsi_values, current_price, True)
                 alerted = True
-            elif (rsi_values['5m'] <= 7 and 
-                  rsi_values['15m'] <= 7 and 
-                  rsi_values['1h'] <= 20 and 
+            elif (rsi_values['5m'] <= 7 and
+                  rsi_values['15m'] <= 7 and
+                  rsi_values['1h'] <= 20 and
                   rsi_values['4h'] <= 20):
                 await self.send_telegram_alert(session, symbol, rsi_values, current_price, False)
                 alerted = True
@@ -184,7 +185,9 @@ await self.check_rate_limit()
                 await self.log(f"⏳ Sonraki tarama için {sleep_time:.1f}s bekleniyor...")
                 await asyncio.sleep(sleep_time)
                 self.last_scan_time = time.time()
-if name == "_main_":
+
+
+if __name__ == "__main__":
     scanner = Scanner()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
