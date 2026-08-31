@@ -21,6 +21,12 @@ RSI_WINDOW = 12
 MAX_CONCURRENT_REQUESTS = 15  # Güvenli eşzamanlı istek sayısı
 REQUEST_DELAY = 0.05  # İstekler arası bekleme (saniye)
 
+# === Ön Filtre Eşikleri ===
+# 5m RSI bu değerlerin dışındaysa (yani 8-89 arasındaysa) sinyal imkansız,
+# o sembol için diğer zaman dilimlerini hiç isteme.
+PREFILTER_HIGH = 90  # 5m RSI bu değerin üstündeyse yüksek RSI adayı
+PREFILTER_LOW = 7    # 5m RSI bu değerin altındaysa düşük RSI adayı
+
 # === Sembol Filtreleme ===
 STABLE_COINS = ["USDC", "BUSD", "TUSD", "USDP", "DAI", "FDUSD", "USTC", "EURS", "PAX"]
 
@@ -108,7 +114,6 @@ class Scanner:
             params = {'symbol': symbol, 'interval': interval, 'limit': KLINES_LIMIT}
             async with session.get(f"{API_URL}/fapi/v1/klines", params=params, timeout=5) as response:
                 data = await response.json()
-                await self.log(f"🔍 {symbol} {interval} verisi alındı")
                 return [float(candle[4]) for candle in data]
         except Exception as e:
             await self.log(f"❌ {symbol} {interval} veri alım hatası: {str(e)}")
@@ -122,19 +127,37 @@ class Scanner:
 
     async def scan_symbol(self, session, symbol):
         try:
-            intervals = ['5m', '15m', '1h', '4h']
-            tasks = [self.get_klines(session, symbol, interval) for interval in intervals]
-            results = await asyncio.gather(*tasks)
-            if any(result is None for result in results):
+            # --- 1. AŞAMA: Ön filtre — önce sadece 5m RSI'ya bak (1 istek) ---
+            closes_5m = await self.get_klines(session, symbol, '5m')
+            if closes_5m is None:
                 return None
-            rsi_values = {}
-            for interval, closes in zip(intervals, results):
+            rsi_5m = await self.calculate_rsi(closes_5m)
+            if rsi_5m is None:
+                return None
+
+            # 5m ne yüksek ne düşük eşiğe yakınsa sinyal imkansız, diğerlerini isteme
+            if not (rsi_5m >= PREFILTER_HIGH or rsi_5m <= PREFILTER_LOW):
+                return None
+
+            # --- 2. AŞAMA: 5m aday çıktı, şimdi 15m + 1h + 4h çek ---
+            other_intervals = ['15m', '1h', '4h']
+            tasks = [self.get_klines(session, symbol, interval) for interval in other_intervals]
+            other_results = await asyncio.gather(*tasks)
+            if any(result is None for result in other_results):
+                return None
+
+            rsi_values = {'5m': rsi_5m}
+            for interval, closes in zip(other_intervals, other_results):
                 rsi = await self.calculate_rsi(closes)
                 if rsi is None:
                     return None
                 rsi_values[interval] = rsi
-            await self.log(f"📈 {symbol} RSI değerleri: 5m={rsi_values['5m']:.2f} 15m={rsi_values['15m']:.2f} 1h={rsi_values['1h']:.2f} 4h={rsi_values['4h']:.2f}")
-            current_price = results[0][-1]
+
+            await self.log(
+                f"📈 {symbol} RSI değerleri: 5m={rsi_values['5m']:.2f} "
+                f"15m={rsi_values['15m']:.2f} 1h={rsi_values['1h']:.2f} 4h={rsi_values['4h']:.2f}"
+            )
+            current_price = closes_5m[-1]
             alerted = False
             if (rsi_values['5m'] >= 90 and
                 rsi_values['15m'] >= 90 and
