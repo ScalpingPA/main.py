@@ -161,7 +161,7 @@ class Scanner:
             alerted = False
             if (rsi_values['5m'] >= 90 and
                 rsi_values['15m'] >= 90 and
-                (rsi_values['5m'] + rsi_values['15m'] + rsi_values['1h'] + rsi_values['4h']) / 4 >= 65):
+                (rsi_values['5m'] + rsi_values['15m'] + rsi_values['1h'] + rsi_values['4h']) / 4 >= 85):
                 await self.send_telegram_alert(session, symbol, rsi_values, current_price, True)
                 alerted = True
             elif (rsi_values['5m'] <= 7 and
