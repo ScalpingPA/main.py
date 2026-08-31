@@ -24,7 +24,7 @@ REQUEST_DELAY = 0.05  # İstekler arası bekleme (saniye)
 # === Ön Filtre Eşikleri ===
 # 5m RSI bu değerlerin dışındaysa (yani 8-89 arasındaysa) sinyal imkansız,
 # o sembol için diğer zaman dilimlerini hiç isteme.
-PREFILTER_HIGH = 90  # 5m RSI bu değerin üstündeyse yüksek RSI adayı
+PREFILTER_HIGH = 60  # 5m RSI bu değerin üstündeyse yüksek RSI adayı
 PREFILTER_LOW = 7    # 5m RSI bu değerin altındaysa düşük RSI adayı
 
 # === Sembol Filtreleme ===
@@ -159,9 +159,9 @@ class Scanner:
             )
             current_price = closes_5m[-1]
             alerted = False
-            if (rsi_values['5m'] >= 90 and
-                rsi_values['15m'] >= 90 and
-                (rsi_values['5m'] + rsi_values['15m'] + rsi_values['1h'] + rsi_values['4h']) / 4 >= 85):
+            if (rsi_values['5m'] >= 60 and
+                rsi_values['15m'] >= 60 and
+                (rsi_values['5m'] + rsi_values['15m'] + rsi_values['1h'] + rsi_values['4h']) / 4 >= 65):
                 await self.send_telegram_alert(session, symbol, rsi_values, current_price, True)
                 alerted = True
             elif (rsi_values['5m'] <= 7 and
